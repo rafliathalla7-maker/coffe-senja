@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kopi Senja - Coffee Shop & Katalog</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Plus+Jakarta+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4a3728;
+            --secondary: #c9a66b;
+            --accent: #f5f2ed;
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--accent);
+            color: #1c1917;
+            overflow-x: hidden;
+        }
+        .serif {
+            font-family: 'Playfair Display', serif;
+        }
+        .hero-bg {
+            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('image_2bd15f.jpg');
+            background-size: cover;
+            background-position: center;
+        }
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .page {
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+        .page.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .menu-item-row {
+            transition: all 0.3s ease;
+            border-bottom: 1px solid rgba(74, 55, 40, 0.1);
+        }
+        .menu-item-row:hover {
+            background-color: white;
+            padding-left: 15px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+        .hidden-item {
+            display: none !important;
+        }
+        .cart-badge {
+            position: absolute;
+            top: -5px;
+            right: -10px;
+            background: #b45309;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 99px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigasi Tetap -->
+    <nav class="fixed w-full z-50 glass-nav border-b border-stone-200">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+            <div class="flex justify-between h-20 items-center">
+                <div class="flex items-center cursor-pointer" onclick="showPage('home')">
+                    <span class="serif text-2xl font-bold text-stone-900 tracking-tight italic">KOPI SENJA</span>
+                </div>
+                <div class="hidden md:flex space-x-10 items-center text-xs font-bold tracking-[0.2em] text-stone-600">
+                    <a href="javascript:void(0)" onclick="showPage('home')" class="nav-link hover:text-amber-700 transition">BERANDA</a>
+                    <a href="javascript:void(0)" onclick="showPage('catalog')" class="nav-link hover:text-amber-700 transition">KATALOG</a>
+                    <div class="relative cursor-pointer" onclick="toggleCart()">
+                        <span class="hover:text-amber-700 transition tracking-[0.2em]">KERANJANG</span>
+                        <span id="cart-count-nav" class="cart-badge">0</span>
+                    </div>
+                    <button onclick="showPage('catalog')" class="bg-stone-900 text-white px-8 py-3 rounded-full hover:bg-stone-700 transition shadow-lg">PESAN SEKARANG</button>
+                </div>
+                <!-- Mobile Cart Toggle -->
+                <div class="md:hidden relative cursor-pointer" onclick="toggleCart()">
+                    <svg class="w-6 h-6 text-stone-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                    <span id="cart-count-mobile" class="cart-badge">0</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- SIDEBAR KERANJANG -->
+    <div id="cart-sidebar" class="fixed inset-y-0 right-0 w-full md:w-96 bg-white z-[60] shadow-2xl transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col border-l border-stone-200">
+        <div class="p-6 border-b flex justify-between items-center">
+            <h3 class="serif text-2xl font-bold">Keranjang Saya</h3>
+            <button onclick="toggleCart()" class="text-stone-400 hover:text-black text-2xl">&times;</button>
+        </div>
+        <div id="cart-items" class="flex-1 overflow-y-auto p-6 space-y-4">
+            <p class="text-stone-400 text-center py-10 italic">Keranjang masih kosong...</p>
+        </div>
+        <div class="p-6 border-t bg-stone-50 space-y-4">
+            <div class="flex justify-between items-center font-bold text-lg">
+                <span>Total Bayar</span>
+                <span id="cart-total" class="text-amber-800">Rp 0</span>
+            </div>
+            <button onclick="checkout()" class="w-full bg-stone-900 text-white py-4 rounded-xl font-bold hover:bg-amber-800 transition shadow-lg">PROSES PEMBAYARAN</button>
+        </div>
+    </div>
+
+    <!-- HALAMAN BERANDA -->
+    <main id="home" class="page active pt-20">
+        <section class="hero-bg h-[85vh] flex items-center justify-center text-center text-white px-6">
+            <div class="max-w-4xl">
+                <span class="text-amber-400 font-bold tracking-[0.3em] text-sm mb-4 block">EST. 2024</span>
+                <h1 class="serif text-6xl md:text-8xl mb-8 leading-[1.1]">Temukan Rasa <br> di Balik Cangkir</h1>
+                <p class="text-lg md:text-xl text-stone-200 font-light mb-12 max-w-2xl mx-auto leading-relaxed">Nikmati kehangatan kopi otentik dan varian non-kopi yang menyegarkan langsung di meja Anda.</p>
+                <div class="flex flex-col sm:flex-row justify-center gap-6">
+                    <button onclick="showPage('catalog')" class="bg-amber-600 hover:bg-amber-700 text-white px-12 py-5 rounded-full font-bold transition-all shadow-xl scale-105">Pesan Menu Sekarang</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="py-24 px-6 bg-white">
+            <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+                <div class="relative">
+                    <img src="image_2bd15f.jpg" alt="Foto Kopi Senja" class="rounded-3xl shadow-2xl relative z-10 w-full object-cover h-[500px]">
+                    <div class="absolute -bottom-6 -right-6 w-48 h-48 bg-stone-100 rounded-full z-0 border border-stone-200 hidden md:block"></div>
+                </div>
+                <div>
+                    <span class="text-amber-600 font-bold tracking-widest text-xs uppercase">Cerita Kami</span>
+                    <h2 class="serif text-4xl md:text-5xl text-stone-900 mt-4 mb-8">Diseduh dengan Hati</h2>
+                    <p class="text-stone-600 leading-relaxed mb-6">Kami percaya keindahan setiap minuman terletak pada keseimbangan rasa. Dengan biji kopi pilihan dan bahan premium, kami menghadirkan pengalaman kopi yang tak terlupakan.</p>
+                    <button onclick="showPage('catalog')" class="text-amber-700 font-bold border-b-2 border-amber-700 pb-1 hover:text-amber-900 transition inline-flex items-center gap-2">Mulai Pesan &rarr;</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- HALAMAN KATALOG -->
+    <main id="catalog" class="page pt-32 pb-24 px-6">
+        <div class="max-w-5xl mx-auto">
+            <div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
+                <div>
+                    <button onclick="showPage('home')" class="text-stone-400 text-xs font-bold tracking-widest uppercase hover:text-stone-900 transition mb-4 block">&larr; Kembali ke Beranda</button>
+                    <h2 class="serif text-5xl text-stone-900">Katalog Menu</h2>
+                    <p class="text-stone-500 mt-2">Pilih minuman favorit Anda dari daftar di bawah ini.</p>
+                </div>
+                <div class="bg-stone-200/50 p-2 rounded-full flex space-x-2">
+                    <button id="filter-kopi" onclick="filterMenu('kopi')" class="filter-btn px-6 py-2 bg-white rounded-full text-xs font-bold shadow-sm transition">KOPI</button>
+                    <button id="filter-nonkopi" onclick="filterMenu('nonkopi')" class="filter-btn px-6 py-2 text-stone-500 text-xs font-bold hover:text-stone-900 transition">NON-KOPI</button>
+                </div>
+            </div>
+
+            <!-- Daftar Katalog -->
+            <div id="menu-list" class="space-y-2 mb-20">
+                <!-- Diisi via JavaScript -->
+            </div>
+
+            <!-- Modal Konfigurasi Item -->
+            <div id="modal-config" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] hidden items-center justify-center p-6">
+                <div class="bg-white rounded-[2.5rem] p-8 max-w-lg w-full shadow-2xl">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 id="modal-title" class="serif text-2xl font-bold">Konfigurasi Menu</h3>
+                        <button onclick="closeModal()" class="text-stone-400 hover:text-black text-2xl">&times;</button>
+                    </div>
+                    <div class="space-y-6">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-bold uppercase text-stone-400">Penyajian</label>
+                                <select id="modal-type" class="w-full bg-stone-50 border-b-2 py-2 focus:outline-none focus:border-amber-700">
+                                    <option>Dingin</option>
+                                    <option>Panas</option>
+                                </select>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-bold uppercase text-stone-400">Jumlah</label>
+                                <div class="flex items-center space-x-4">
+                                    <button onclick="updateModalQty(-1)" class="w-8 h-8 border rounded-full flex items-center justify-center">-</button>
+                                    <span id="modal-qty" class="font-bold">1</span>
+                                    <button onclick="updateModalQty(1)" class="w-8 h-8 border rounded-full flex items-center justify-center">+</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold uppercase text-stone-400">Catatan Khusus</label>
+                            <input type="text" id="modal-note" class="w-full bg-stone-50 border-b-2 py-2 focus:outline-none focus:border-amber-700" placeholder="Contoh: Kurangi es, tanpa gula...">
+                        </div>
+                        <button onclick="addToCartFromModal()" class="w-full bg-stone-900 text-white py-4 rounded-xl font-bold hover:bg-amber-800 transition">Masukkan Keranjang</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Checkout -->
+            <div id="modal-checkout" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] hidden items-center justify-center p-6">
+                <div class="bg-white rounded-[2.5rem] p-8 max-w-lg w-full shadow-2xl max-h-[90vh] overflow-y-auto">
+                    <h3 class="serif text-3xl font-bold mb-6 text-center">Checkout Pesanan</h3>
+                    <form onsubmit="handleFinalOrder(event)" class="space-y-6">
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold uppercase text-stone-400">Data Pengiriman (Meja)</label>
+                            <div class="grid grid-cols-2 gap-4">
+                                <input type="text" id="final-name" required placeholder="Nama Anda" class="w-full border-b-2 py-2 focus:outline-none focus:border-amber-700">
+                                <input type="number" id="final-table" required placeholder="No. Meja" class="w-full border-b-2 py-2 focus:outline-none focus:border-amber-700">
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <label class="text-[10px] font-bold uppercase text-stone-400">Metode Pembayaran</label>
+                            <div class="grid grid-cols-2 gap-4">
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="payment" value="QRIS" class="hidden peer" checked onchange="toggleQR(true)">
+                                    <div class="p-4 border-2 rounded-xl text-center font-bold peer-checked:border-amber-700 peer-checked:bg-amber-50 text-stone-500 peer-checked:text-amber-900 transition">QRIS</div>
+                                </label>
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="payment" value="CASH" class="hidden peer" onchange="toggleQR(false)">
+                                    <div class="p-4 border-2 rounded-xl text-center font-bold peer-checked:border-amber-700 peer-checked:bg-amber-50 text-stone-500 peer-checked:text-amber-900 transition">Kasir (Cash)</div>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Gambar QRIS Asli -->
+                        <div id="qris-box" class="bg-stone-50 p-6 rounded-2xl flex flex-col items-center border border-stone-100">
+                            <div class="bg-white p-2 border-4 border-stone-200 rounded-xl shadow-inner mb-4">
+                                <img src="image_2a5a3e.png" alt="QRIS Kopi Senja" class="w-56 h-auto">
+                            </div>
+                            <p class="text-[10px] text-stone-500 text-center uppercase tracking-widest font-bold">Pindai QRIS di atas untuk membayar</p>
+                        </div>
+
+                        <div id="cash-box" class="hidden bg-amber-50 p-6 rounded-2xl text-center border border-amber-200">
+                            <p class="text-sm text-amber-900 font-medium">Silakan lakukan pembayaran tunai secara langsung di kasir sebelum pesanan diproses.</p>
+                        </div>
+
+                        <button type="submit" class="w-full bg-stone-900 text-white py-5 rounded-2xl font-bold uppercase tracking-widest hover:bg-stone-700 transition">Konfirmasi & Kirim Pesanan</button>
+                        <button type="button" onclick="closeCheckout()" class="w-full text-stone-400 text-xs font-bold uppercase mt-2 hover:text-stone-900">Batal</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-stone-900 text-white py-12 px-6 border-t border-stone-800">
+        <div class="max-w-7xl mx-auto text-center">
+            <h2 class="serif text-2xl font-bold mb-4 italic">KOPI SENJA</h2>
+            <p class="text-stone-500 text-sm mb-4 tracking-widest uppercase">&copy; 2024 Seluruh Hak Cipta Dilindungi.</p>
+            <div class="text-[10px] text-stone-600 uppercase tracking-tighter">Powered by Kopi Senja Digital Ordering</div>
+        </div>
+    </footer>
+
+    <script>
+        const menuData = [
+            { id: 1, name: 'Americano', price: 15000, category: 'kopi', desc: 'Espresso murni dengan air panas/dingin.', bestSeller: true },
+            { id: 2, name: 'V60 Manual Brew', price: 25000, category: 'kopi', desc: 'Rasa kompleks dengan teknik penyaringan manual.' },
+            { id: 3, name: 'Susu Gula Aren', price: 20000, category: 'kopi', desc: 'Kopi susu creamy dengan pemanis alami gula aren.' },
+            { id: 4, name: 'Latte Art', price: 30000, category: 'kopi', desc: 'Susu steam lembut dengan dekorasi seni.' },
+            { id: 5, name: 'Matcha Latte', price: 25000, category: 'nonkopi', desc: 'Teh hijau Jepang grade premium dengan susu.' },
+            { id: 6, name: 'Premium Chocolate', price: 22000, category: 'nonkopi', desc: 'Cokelat murni yang kental dan creamy.' },
+            { id: 7, name: 'Earl Grey Tea', price: 18000, category: 'nonkopi', desc: 'Teh aromatik dengan sentuhan jeruk bergamot.' }
+        ];
+
+        let cart = [];
+        let modalActiveItem = null;
+        let modalQty = 1;
+
+        window.onload = () => {
+            renderMenu('kopi');
+        };
+
+        function renderMenu(category) {
+            const container = document.getElementById('menu-list');
+            container.innerHTML = '';
+            const filtered = menuData.filter(m => m.category === category);
+            
+            filtered.forEach(item => {
+                const row = document.createElement('div');
+                row.className = `menu-item-row p-6 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center cursor-pointer`;
+                row.onclick = () => openModal(item);
+                row.innerHTML = `
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3">
+                            <h3 class="serif text-2xl text-stone-900 font-bold">${item.name}</h3>
+                            ${item.bestSeller ? '<span class="bg-amber-100 text-amber-800 text-[10px] px-2 py-1 rounded font-bold uppercase">Terlaris</span>' : ''}
+                        </div>
+                        <p class="text-stone-500 text-sm mt-1">${item.desc}</p>
+                    </div>
+                    <div class="mt-4 md:mt-0 flex items-center gap-8 w-full md:w-auto justify-between">
+                        <span class="text-xl font-bold text-stone-900">Rp ${item.price.toLocaleString('id-ID')}</span>
+                        <button class="bg-stone-900 text-white px-6 py-2 rounded-full text-xs font-bold hover:bg-amber-700">PILIH</button>
+                    </div>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        function filterMenu(category) {
+            renderMenu(category);
+            const btnKopi = document.getElementById('filter-kopi');
+            const btnNonKopi = document.getElementById('filter-nonkopi');
+            if(category === 'kopi') {
+                btnKopi.className = 'filter-btn px-6 py-2 bg-white rounded-full text-xs font-bold shadow-sm transition';
+                btnNonKopi.className = 'filter-btn px-6 py-2 text-stone-500 text-xs font-bold hover:text-stone-900';
+            } else {
+                btnNonKopi.className = 'filter-btn px-6 py-2 bg-white rounded-full text-xs font-bold shadow-sm transition';
+                btnKopi.className = 'filter-btn px-6 py-2 text-stone-500 text-xs font-bold hover:text-stone-900';
+            }
+        }
+
+        function toggleCart() {
+            const sidebar = document.getElementById('cart-sidebar');
+            sidebar.classList.toggle('translate-x-full');
+        }
+
+        function openModal(item) {
+            modalActiveItem = item;
+            modalQty = 1;
+            document.getElementById('modal-title').innerText = item.name;
+            document.getElementById('modal-qty').innerText = '1';
+            document.getElementById('modal-config').classList.remove('hidden');
+            document.getElementById('modal-config').classList.add('flex');
+        }
+
+        function closeModal() {
+            document.getElementById('modal-config').classList.add('hidden');
+            document.getElementById('modal-config').classList.remove('flex');
+            document.getElementById('modal-note').value = '';
+        }
+
+        function updateModalQty(val) {
+            modalQty = Math.max(1, modalQty + val);
+            document.getElementById('modal-qty').innerText = modalQty;
+        }
+
+        function addToCartFromModal() {
+            const type = document.getElementById('modal-type').value;
+            const note = document.getElementById('modal-note').value;
+            
+            const cartItem = {
+                cartId: Date.now(),
+                id: modalActiveItem.id,
+                name: modalActiveItem.name,
+                price: modalActiveItem.price,
+                qty: modalQty,
+                type: type,
+                note: note
+            };
+
+            cart.push(cartItem);
+            updateCartUI();
+            closeModal();
+            if(window.innerWidth > 768) toggleCart();
+        }
+
+        function removeFromCart(cartId) {
+            cart = cart.filter(item => item.cartId !== cartId);
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            const container = document.getElementById('cart-items');
+            const totalEl = document.getElementById('cart-total');
+            const countNav = document.getElementById('cart-count-nav');
+            const countMob = document.getElementById('cart-count-mobile');
+            
+            container.innerHTML = '';
+            let total = 0;
+            let count = 0;
+
+            if(cart.length === 0) {
+                container.innerHTML = '<p class="text-stone-400 text-center py-10 italic">Keranjang masih kosong...</p>';
+            }
+
+            cart.forEach(item => {
+                total += (item.price * item.qty);
+                count += item.qty;
+                
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'bg-stone-50 p-4 rounded-xl border border-stone-100 relative shadow-sm';
+                itemDiv.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="font-bold text-stone-900">${item.name} (${item.type})</h4>
+                            <p class="text-xs text-stone-500">${item.qty} x Rp ${item.price.toLocaleString('id-ID')}</p>
+                            ${item.note ? `<p class="text-[10px] bg-stone-200/50 px-2 py-1 mt-2 inline-block rounded text-stone-600">Ket: ${item.note}</p>` : ''}
+                        </div>
+                        <button onclick="removeFromCart(${item.cartId})" class="text-red-300 hover:text-red-600 text-xl font-bold">&times;</button>
+                    </div>
+                `;
+                container.appendChild(itemDiv);
+            });
+
+            totalEl.innerText = `Rp ${total.toLocaleString('id-ID')}`;
+            countNav.innerText = count;
+            countMob.innerText = count;
+        }
+
+        function checkout() {
+            if(cart.length === 0) {
+                return;
+            }
+            toggleCart();
+            document.getElementById('modal-checkout').classList.remove('hidden');
+            document.getElementById('modal-checkout').classList.add('flex');
+        }
+
+        function closeCheckout() {
+            document.getElementById('modal-checkout').classList.add('hidden');
+            document.getElementById('modal-checkout').classList.remove('flex');
+        }
+
+        function toggleQR(show) {
+            document.getElementById('qris-box').classList.toggle('hidden', !show);
+            document.getElementById('cash-box').classList.toggle('hidden', show);
+        }
+
+        function handleFinalOrder(e) {
+            e.preventDefault();
+            const name = document.getElementById('final-name').value;
+            const table = document.getElementById('final-table').value;
+            const payment = document.querySelector('input[name="payment"]:checked').value;
+            
+            let total = 0;
+            cart.forEach(i => total += (i.price * i.qty));
+
+            const overlay = document.createElement('div');
+            overlay.className = "fixed inset-0 bg-black/95 backdrop-blur-lg z-[100] flex items-center justify-center p-6 text-center";
+            overlay.innerHTML = `
+                <div class="bg-white p-10 rounded-[3rem] max-w-sm w-full shadow-2xl">
+                    <div class="w-20 h-20 bg-green-100 text-green-700 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                    </div>
+                    <h4 class="serif text-2xl mb-2 font-bold text-stone-900">Pesanan Berhasil!</h4>
+                    <p class="text-stone-500 text-sm mb-6 leading-relaxed">
+                        Terima kasih <strong>${name}</strong>. Pesanan Anda segera kami proses untuk <strong>Meja ${table}</strong>.
+                    </p>
+                    <div class="bg-amber-50 p-4 rounded-xl mb-8 border border-amber-100">
+                        <p class="text-stone-400 text-[10px] uppercase font-bold mb-1">Total Pembayaran (${payment})</p>
+                        <p class="text-amber-800 font-bold text-2xl">Rp ${total.toLocaleString('id-ID')}</p>
+                    </div>
+                    <button onclick="location.reload()" class="w-full bg-stone-900 text-white py-4 rounded-xl font-bold uppercase tracking-widest hover:bg-stone-700 transition">OK, Selesai</button>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+        }
+
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
